@@ -1,0 +1,5 @@
+{
+  "name": "RiverLabel Pro",
+  "description": "An advanced spatial labeling engine that intelligently places text within complex river geometries using clearance-based scoring and orientation optimization.",
+  "requestFramePermissions": []
+}
