@@ -10,17 +10,17 @@ interface RiverVisualizerProps {
   fontSize: number;
 }
 
-const RiverVisualizer: React.FC<RiverVisualizerProps> = ({ 
-  river, 
-  result, 
-  showCandidates, 
+const RiverVisualizer: React.FC<RiverVisualizerProps> = ({
+  river,
+  result,
+  showCandidates,
   fontSize
 }) => {
   const { polygon } = river;
   const { placed, candidates, bounds, centroid } = result;
 
   const padding = 150;
-  
+
   const intrinsic = useMemo(() => {
     const w = bounds.max.x - bounds.min.x;
     const h = bounds.max.y - bounds.min.y;
@@ -30,16 +30,16 @@ const RiverVisualizer: React.FC<RiverVisualizerProps> = ({
       width: w + padding * 2,
       height: h + padding * 2
     };
-  }, [bounds]);
+  }, [ bounds ]);
 
-  const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
-  const [isDragging, setIsDragging] = useState(false);
+  const [ transform, setTransform ] = useState({ x: 0, y: 0, scale: 1 });
+  const [ isDragging, setIsDragging ] = useState(false);
   const dragStart = useRef({ x: 0, y: 0 });
   const svgRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
     setTransform({ x: 0, y: 0, scale: 1 });
-  }, [river.id]);
+  }, [ river.id ]);
 
   useEffect(() => {
     const svg = svgRef.current;
@@ -49,7 +49,7 @@ const RiverVisualizer: React.FC<RiverVisualizerProps> = ({
       e.preventDefault();
       const zoomFactor = 1.15;
       const direction = e.deltaY < 0 ? 1 : -1;
-      
+
       setTransform(prev => {
         const newScale = direction > 0 ? prev.scale * zoomFactor : prev.scale / zoomFactor;
         const finalScale = Math.min(Math.max(newScale, 0.05), 100);
@@ -64,12 +64,12 @@ const RiverVisualizer: React.FC<RiverVisualizerProps> = ({
 
     svg.addEventListener('wheel', handleWheelInternal, { passive: false });
     return () => svg.removeEventListener('wheel', handleWheelInternal);
-  }, [intrinsic.width, intrinsic.height]);
+  }, [ intrinsic.width, intrinsic.height ]);
 
   const polygonPath = useMemo(() => {
     if (!polygon.length) return '';
     return polygon.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ') + ' Z';
-  }, [polygon]);
+  }, [ polygon ]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (e.button !== 0) return;
@@ -108,9 +108,9 @@ const RiverVisualizer: React.FC<RiverVisualizerProps> = ({
 
   return (
     <div className="relative w-full h-[600px] bg-[#0c121e] rounded-3xl overflow-hidden border border-slate-800 shadow-2xl group select-none">
-      <svg 
+      <svg
         ref={svgRef}
-        viewBox={`0 0 ${intrinsic.width} ${intrinsic.height}`} 
+        viewBox={`0 0 ${intrinsic.width} ${intrinsic.height}`}
         className={`w-full h-full touch-none cursor-${isDragging ? 'grabbing' : 'grab'}`}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -125,18 +125,18 @@ const RiverVisualizer: React.FC<RiverVisualizerProps> = ({
         </defs>
         <g transform={`translate(${transform.x}, ${transform.y}) scale(${transform.scale})`} style={{ transition: isDragging ? 'none' : 'transform 0.1s ease-out' }}>
           <g transform={`translate(${-intrinsic.minX}, ${-intrinsic.minY})`}>
-            
+
             {placed?.path && (
               <path id={pathId} d={placed.path} fill="none" pointerEvents="none" />
             )}
 
-            <path 
-              d={polygonPath} 
-              fill={COLORS.river} 
-              fillOpacity={0.35} 
-              stroke={COLORS.riverBorder} 
-              strokeWidth={3 / transform.scale} 
-              strokeLinejoin="round" 
+            <path
+              d={polygonPath}
+              fill={COLORS.river}
+              fillOpacity={0.35}
+              stroke={COLORS.riverBorder}
+              strokeWidth={3 / transform.scale}
+              strokeLinejoin="round"
               className="transition-colors duration-500"
             />
 
@@ -160,41 +160,43 @@ const RiverVisualizer: React.FC<RiverVisualizerProps> = ({
 
             {/* Always show the best path visualization to demonstrate spine tracing, regardless of showCandidates */}
             {placed && placed.path && (
-               <path 
-                 d={placed.path} 
-                 fill="none" 
-                 stroke={hasCollisions ? "#ef4444" : "#f59e0b"} 
-                 strokeWidth={2.5 / transform.scale} 
-                 strokeDasharray={`${10/transform.scale} ${10/transform.scale}`}
-                 strokeOpacity={0.8}
-               />
+              <path
+                d={placed.path}
+                fill="none"
+                stroke={hasCollisions ? "#ef4444" : "#f59e0b"}
+                strokeWidth={2.5 / transform.scale}
+                strokeDasharray={`${10 / transform.scale} ${10 / transform.scale}`}
+                strokeOpacity={0.8}
+              />
             )}
 
             {placed && placed.path && (
               <text
                 dominantBaseline="central"
-                style={{ 
-                  fontSize: `${fontSize}px`, 
-                  fontWeight: '700', 
+                style={{
+                  fontSize: `${fontSize}px`,
+                  fontWeight: '700',
                   textRendering: 'geometricPrecision',
-                  // Significantly reduced spacing to prevent truncation and ensure text fits within path bounds
-                  letterSpacing: '0.05em',
+                  // Optimized spacing for single-line curved text
+                  letterSpacing: '0.08em',
                   pointerEvents: 'none',
                   userSelect: 'none',
                   fontFamily: '"Inter", sans-serif',
                   paintOrder: 'stroke fill'
                 }}
               >
-                <textPath 
-                  href={`#${pathId}`} 
-                  startOffset="50%" 
-                  textAnchor="middle" 
+                <textPath
+                  href={`#${pathId}`}
+                  startOffset="50%"
+                  textAnchor="middle"
                   fill="white"
                   stroke="#0c121e"
                   strokeWidth={`${fontSize * 0.4}px`}
                   strokeLinejoin="round"
+                  strokeLinecap="round"
                   method="align"
                   spacing="auto"
+                  side="left"
                 >
                   {river.label}
                 </textPath>
@@ -203,7 +205,7 @@ const RiverVisualizer: React.FC<RiverVisualizerProps> = ({
           </g>
         </g>
       </svg>
-      
+
       <div className="absolute top-4 right-4 flex flex-col gap-2">
         <button onClick={() => zoomStep(1.4)} className="p-3 bg-slate-800/90 hover:bg-slate-700 text-white rounded-2xl border border-slate-700 backdrop-blur-md shadow-2xl transition-all active:scale-95">
           <ZoomIn className="w-5 h-5" />
