@@ -30,6 +30,7 @@ export interface LabelPlacement {
   path?: string; // SVG path string for curved text
   bounds?: LabelBounds;
   collisionPoints?: Point[]; // Points on the path that are close to edges
+  collisionEdges?: Point[][]; // Segments of the river bank causing collision
 }
 
 export interface LabelingResult {
