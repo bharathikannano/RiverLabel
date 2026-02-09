@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useDeferredValue } from 'react';
 import { SAMPLE_RIVERS } from './constants';
 import { calculateLabelPlacement } from './services/labelingEngine';
 import RiverVisualizer from './components/RiverVisualizer';
@@ -11,6 +11,11 @@ const App: React.FC = () => {
   const [fontSize, setFontSize] = useState(16);
   const [curveTension, setCurveTension] = useState(0.8);
   
+  // Defer heavy calculation parameters to keep UI responsive
+  const deferredFontSize = useDeferredValue(fontSize);
+  const deferredTension = useDeferredValue(curveTension);
+  const isStale = fontSize !== deferredFontSize || curveTension !== deferredTension;
+
   const currentRiver = useMemo(() => 
     SAMPLE_RIVERS.find(r => r.id === selectedRiverId) || SAMPLE_RIVERS[0]
   , [selectedRiverId]);
@@ -18,8 +23,8 @@ const App: React.FC = () => {
   const existingLabels: LabelBounds[] = [];
 
   const result = useMemo(() => 
-    calculateLabelPlacement(currentRiver.polygon, currentRiver.label, fontSize, curveTension, existingLabels)
-  , [currentRiver, fontSize, curveTension]);
+    calculateLabelPlacement(currentRiver.polygon, currentRiver.label, deferredFontSize, deferredTension, existingLabels)
+  , [currentRiver, deferredFontSize, deferredTension]);
 
   // Robust formatting for stats to prevent 'undefined' display
   const clearanceVal = useMemo(() => {
@@ -92,12 +97,12 @@ const App: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Main Visualization Area */}
           <section className="lg:col-span-8 space-y-6">
-            <div className="bg-[#0c121e] p-1 rounded-3xl shadow-2xl border border-slate-800 overflow-hidden ring-1 ring-slate-800/50">
+            <div className={`bg-[#0c121e] p-1 rounded-3xl shadow-2xl border border-slate-800 overflow-hidden ring-1 ring-slate-800/50 transition-opacity duration-200 ${isStale ? 'opacity-70' : 'opacity-100'}`}>
               <RiverVisualizer 
                 river={currentRiver} 
                 result={result} 
                 showCandidates={showCandidates} 
-                fontSize={fontSize}
+                fontSize={deferredFontSize}
               />
             </div>
 
